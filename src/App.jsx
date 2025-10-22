@@ -12,11 +12,11 @@ import { get, post } from 'aws-amplify/api';
 import './App.css';
 
 
-// --- DEPLOYMENT DETAILS (replace with yours) ---
-const API_URL = 'https://jfpjw793w8.execute-api.ap-south-1.amazonaws.com/Prod';
-const USER_POOL_ID = 'ap-south-1_vhW5WkR0m';
-const USER_POOL_CLIENT_ID = '65vig6bphk2gf0hdbl75lo07u4';
-const REGION = 'ap-south-1';
+// --- DEPLOYMENT DETAILS (override with Vite env if set) ---
+const API_URL = import.meta.env.VITE_API_URL || ' https://ye0jkh9k1d.execute-api.ap-south-1.amazonaws.com/Prod';
+const USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID || 'ap-south-1_QfOkTIS06';
+const USER_POOL_CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID || '43id4o19emlj1mmvh3crhfcm9h';
+const REGION = import.meta.env.VITE_AWS_REGION || 'ap-south-1';
 // ------------------------------------------------
 
 
