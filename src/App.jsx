@@ -13,9 +13,9 @@ import './App.css';
 
 
 // --- DEPLOYMENT DETAILS (replace with yours) ---
-const API_URL = 'https://hc7tn3bbg3.execute-api.ap-south-1.amazonaws.com/Prod';
-const USER_POOL_ID = 'ap-south-1_kqssV8M6D';
-const USER_POOL_CLIENT_ID = '3u2li9r4b0di9pmn6au4lnbq3j';
+const API_URL = 'https://jfpjw793w8.execute-api.ap-south-1.amazonaws.com/Prod';
+const USER_POOL_ID = 'ap-south-1_vhW5WkR0m';
+const USER_POOL_CLIENT_ID = '65vig6bphk2gf0hdbl75lo07u4';
 const REGION = 'ap-south-1';
 // ------------------------------------------------
 
