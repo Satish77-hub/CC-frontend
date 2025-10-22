@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-amplify/api": "^6.3.19",
+    "@aws-amplify/auth": "^6.16.0",
     "aws-amplify": "^6.15.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
