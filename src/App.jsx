@@ -1,34 +1,51 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
-import { signIn, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import {
+    signIn,
+    signOut,
+    getCurrentUser,
+    fetchAuthSession,
+    signUp,          // <-- Added
+    confirmSignUp    // <-- Added
+} from 'aws-amplify/auth';
 import { get, post } from 'aws-amplify/api';
 import './App.css';
 
 // --- YOUR DEPLOYMENT DETAILS ---
-// These are from your successful 'sam deploy' output
-const API_URL = 'https://eh4zb6jk03.execute-api.ap-south-1.amazonaws.com/Prod';
-const USER_POOL_ID = 'ap-south-1_GnsX4Rwb6';
-const USER_POOL_CLIENT_ID = '7qtn396a7fc82pgad7gt9dnrin';
+const API_URL = 'https://7f80ndql3i.execute-api.ap-south-1.amazonaws.com/Prod';
+const USER_POOL_ID = 'ap-south-1_T34nXOQMw';
+const USER_POOL_CLIENT_ID = '1b595rsph4m2op4at0gadvnjqv';
 // ------------------------------------------
 
+// --- V6 AMPLIFY CONFIGURATION ---
 Amplify.configure({
     Auth: {
-        userPoolId: USER_POOL_ID,
-        userPoolWebClientId: USER_POOL_CLIENT_ID,
+        Cognito: { // <--- v6 Change
+            userPoolId: USER_POOL_ID,
+            userPoolWebClientId: USER_POOL_CLIENT_ID,
+        }
     },
     API: {
-        endpoints: [{
-            name: "CCDedupAPI",
-            endpoint: API_URL,
-            custom_header: async () => {
-                try {
-                    return { Authorization: `Bearer ${(await Auth.currentSession()).getIdToken().getJwtToken()}` }
-                } catch (e) { return {} }
+        REST: { // <--- v6 Change
+            "CCDedupAPI": { // <--- v6 Change (API name is the key)
+                endpoint: API_URL,
+                custom_header: async () => {
+                    try {
+                        // v6 method to get token
+                        const session = await fetchAuthSession();
+                        const token = session.tokens?.idToken?.toString();
+                        if (!token) { throw new Error("No ID token found"); }
+                        return { Authorization: `Bearer ${token}` }
+                    } catch (e) {
+                        console.error("Error fetching auth session:", e);
+                        return {}
+                    }
+                }
             }
-        }]
+        }
     }
 });
+// ----------------------------------
 
 function App() {
     const [user, setUser] = useState(null);
@@ -45,7 +62,8 @@ function App() {
     useEffect(() => {
         (async () => {
             try {
-                const currentUser = await Auth.currentAuthenticatedUser();
+                // v6: Use imported function
+                const currentUser = await getCurrentUser();
                 setUser(currentUser);
                 setView('dashboard');
             } catch (e) {
@@ -70,11 +88,12 @@ function App() {
         reader.onerror = reject;
     });
 
-    // --- Auth Handlers ---
+    // --- Auth Handlers (v6) ---
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            await Auth.signUp({ username: email, password });
+            // v6: Use imported function with object
+            await signUp({ username: email, password });
             alert('Registration successful! Please check your email for a confirmation code.');
             setView('confirm');
         } catch (error) { alert(`Registration failed: ${error.message}`); }
@@ -83,7 +102,8 @@ function App() {
     const handleConfirm = async (e) => {
         e.preventDefault();
         try {
-            await Auth.confirmSignUp(email, code);
+            // v6: Use imported function with object
+            await confirmSignUp({ username: email, confirmationCode: code });
             alert('Email confirmed! You can now log in.');
             setView('login');
         } catch (error) { alert(`Confirmation failed: ${error.message}`); }
@@ -92,31 +112,40 @@ function App() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const cognitoUser = await Auth.signIn(email, password);
+            // v6: Use imported function with object
+            const cognitoUser = await signIn({ username: email, password });
             setUser(cognitoUser);
             setView('dashboard');
         } catch (error) { alert(`Login failed: ${error.message}`); }
     };
 
     const handleLogout = async () => {
-        await Auth.signOut();
+        // v6: Use imported function
+        await signOut();
         setUser(null);
         setView('login');
         window.location.reload(); // Reload to clear all state
     };
 
-    // --- App Handlers ---
+    // --- App Handlers (v6) ---
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!selectedFile) { alert('Please select a file.'); return; }
         try {
             const fileDataBase64 = await toBase64(selectedFile);
-            await API.post('CCDedupAPI', '/upload', {
-                body: {
-                    fileName: selectedFile.name,
-                    fileData: fileDataBase64
+            
+            // v6: Use imported function with object
+            await post({
+                apiName: 'CCDedupAPI',
+                path: '/upload',
+                options: {
+                    body: {
+                        fileName: selectedFile.name,
+                        fileData: fileDataBase64
+                    }
                 }
             });
+
             alert('File uploaded successfully!');
             fetchFiles();
             document.getElementById('file-input').value = null;
@@ -129,7 +158,14 @@ function App() {
 
     const fetchFiles = async () => {
         try {
-            const filesData = await API.get('CCDedupAPI', '/files', {});
+            // v6: Use imported function and await response
+            const restOperation = get({
+                apiName: 'CCDedupAPI',
+                path: '/files'
+            });
+            const response = await restOperation.response;
+            const filesData = await response.body.json(); // <-- v6 requires parsing
+            
             setFiles(filesData);
         } catch (error) {
             console.error('Error fetching files:', error);
@@ -139,7 +175,14 @@ function App() {
 
     const downloadFile = async (fileId) => {
         try {
-            const res = await API.get('CCDedupAPI', `/download/${fileId}`, {});
+            // v6: Use imported function and await response
+            const restOperation = get({
+                apiName: 'CCDedupAPI',
+                path: `/download/${fileId}`
+            });
+            const response = await restOperation.response;
+            const res = await response.body.json(); // <-- v6 requires parsing
+
             window.open(res.downloadUrl, '_blank');
         } catch (error) {
             console.error('Error downloading file:', error);
@@ -149,11 +192,22 @@ function App() {
 
     const fetchAdminMetrics = async () => {
         try {
-            const session = await Auth.currentSession();
-            const groups = session.getIdToken().getPayload()['cognito:groups'];
+            // v6: Use imported function
+            const session = await fetchAuthSession();
+            // v6: Get payload from tokens object
+            const groups = session.tokens?.idToken?.payload['cognito:groups'];
+            
             if (groups && groups.includes('Admins')) {
                 setIsAdmin(true);
-                const metricsData = await API.get('CCDedupAPI', '/admin/metrics', {});
+
+                // v6: Use imported function and await response
+                const restOperation = get({
+                    apiName: 'CCDedupAPI',
+                    path: '/admin/metrics'
+                });
+                const response = await restOperation.response;
+                const metricsData = await response.body.json(); // <-- v6 requires parsing
+                
                 setMetrics(metricsData);
             } else {
                 setIsAdmin(false);
@@ -164,7 +218,7 @@ function App() {
         }
     };
 
-    // --- Render Logic ---
+    // --- Render Logic (No changes needed) ---
     const renderAuth = () => (
         <div id="auth-container">
             {view === 'login' && (
