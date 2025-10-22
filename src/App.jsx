@@ -5,33 +5,33 @@ import {
     signOut,
     getCurrentUser,
     fetchAuthSession,
-    signUp,          // <-- Added
-    confirmSignUp    // <-- Added
+    signUp,
+    confirmSignUp
 } from 'aws-amplify/auth';
 import { get, post } from 'aws-amplify/api';
 import './App.css';
 
 // --- YOUR DEPLOYMENT DETAILS ---
-const API_URL = 'https://7f80ndql3i.execute-api.ap-south-1.amazonaws.com/Prod';
-const USER_POOL_ID = 'ap-south-1_T34nXOQMw';
-const USER_POOL_CLIENT_ID = '1b595rsph4m2op4at0gadvnjqv';
+// PASTE THE 3 VALUES FROM YOUR 'sam deploy' OUTPUT HERE
+const API_URL = 'https://hc7tn3bbg3.execute-api.ap-south-1.amazonaws.com/Prod';
+const USER_POOL_ID = 'ap-south-1_kqssV8M6D';
+const USER_POOL_CLIENT_ID = '3u2li9r4b0di9pmn6au4lnbq3j';
 // ------------------------------------------
 
 // --- V6 AMPLIFY CONFIGURATION ---
 Amplify.configure({
     Auth: {
-        Cognito: { // <--- v6 Change
+        Cognito: {
             userPoolId: USER_POOL_ID,
             userPoolWebClientId: USER_POOL_CLIENT_ID,
         }
     },
     API: {
-        REST: { // <--- v6 Change
-            "CCDedupAPI": { // <--- v6 Change (API name is the key)
+        REST: {
+            "CCDedupAPI": {
                 endpoint: API_URL,
                 custom_header: async () => {
                     try {
-                        // v6 method to get token
                         const session = await fetchAuthSession();
                         const token = session.tokens?.idToken?.toString();
                         if (!token) { throw new Error("No ID token found"); }
@@ -62,7 +62,6 @@ function App() {
     useEffect(() => {
         (async () => {
             try {
-                // v6: Use imported function
                 const currentUser = await getCurrentUser();
                 setUser(currentUser);
                 setView('dashboard');
@@ -92,7 +91,6 @@ function App() {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            // v6: Use imported function with object
             await signUp({ username: email, password });
             alert('Registration successful! Please check your email for a confirmation code.');
             setView('confirm');
@@ -102,7 +100,6 @@ function App() {
     const handleConfirm = async (e) => {
         e.preventDefault();
         try {
-            // v6: Use imported function with object
             await confirmSignUp({ username: email, confirmationCode: code });
             alert('Email confirmed! You can now log in.');
             setView('login');
@@ -112,7 +109,6 @@ function App() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            // v6: Use imported function with object
             const cognitoUser = await signIn({ username: email, password });
             setUser(cognitoUser);
             setView('dashboard');
@@ -120,11 +116,10 @@ function App() {
     };
 
     const handleLogout = async () => {
-        // v6: Use imported function
         await signOut();
         setUser(null);
         setView('login');
-        window.location.reload(); // Reload to clear all state
+        window.location.reload(); 
     };
 
     // --- App Handlers (v6) ---
@@ -134,7 +129,6 @@ function App() {
         try {
             const fileDataBase64 = await toBase64(selectedFile);
             
-            // v6: Use imported function with object
             await post({
                 apiName: 'CCDedupAPI',
                 path: '/upload',
@@ -158,13 +152,12 @@ function App() {
 
     const fetchFiles = async () => {
         try {
-            // v6: Use imported function and await response
             const restOperation = get({
                 apiName: 'CCDedupAPI',
                 path: '/files'
             });
             const response = await restOperation.response;
-            const filesData = await response.body.json(); // <-- v6 requires parsing
+            const filesData = await response.body.json();
             
             setFiles(filesData);
         } catch (error) {
@@ -175,13 +168,12 @@ function App() {
 
     const downloadFile = async (fileId) => {
         try {
-            // v6: Use imported function and await response
             const restOperation = get({
                 apiName: 'CCDedupAPI',
                 path: `/download/${fileId}`
             });
             const response = await restOperation.response;
-            const res = await response.body.json(); // <-- v6 requires parsing
+            const res = await response.body.json(); 
 
             window.open(res.downloadUrl, '_blank');
         } catch (error) {
@@ -192,21 +184,18 @@ function App() {
 
     const fetchAdminMetrics = async () => {
         try {
-            // v6: Use imported function
             const session = await fetchAuthSession();
-            // v6: Get payload from tokens object
             const groups = session.tokens?.idToken?.payload['cognito:groups'];
             
             if (groups && groups.includes('Admins')) {
                 setIsAdmin(true);
 
-                // v6: Use imported function and await response
                 const restOperation = get({
                     apiName: 'CCDedupAPI',
                     path: '/admin/metrics'
                 });
                 const response = await restOperation.response;
-                const metricsData = await response.body.json(); // <-- v6 requires parsing
+                const metricsData = await response.body.json();
                 
                 setMetrics(metricsData);
             } else {
