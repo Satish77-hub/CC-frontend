@@ -12,9 +12,9 @@ import {
 import './App.css';
 
 // --- DEPLOYMENT DETAILS (Update with your actual values after SAM deploy) ---
-const API_URL = import.meta.env.VITE_API_URL || 'https://0uxv7n5jyk.execute-api.ap-south-1.amazonaws.com/Prod'; // Replace! Crucial!
-const USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID || 'ap-south-1_SIR5l6hCz'; // Replace! Crucial!
-const USER_POOL_CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID || '4gtsc3duhha2mfvg5onpjoi289'; // Replace! Crucial!
+const API_URL = import.meta.env.VITE_API_URL || 'https://gvdll7gwm8.execute-api.ap-south-1.amazonaws.com/Prod'; // Replace! Crucial!
+const USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID || ' ap-south-1_oDVjcVYmv'; // Replace! Crucial!
+const USER_POOL_CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID || '25euuao1vcennktrugit4vsg50'; // Replace! Crucial!
 const REGION = import.meta.env.VITE_AWS_REGION || 'ap-south-1'; // Ensure this matches your deployment region
 // -----------------------------------------------------------
 
