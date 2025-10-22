@@ -1,8 +1,8 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
-import { Auth } from 'aws-amplify/auth';
-import { API } from 'aws-amplify/api';
+import { signIn, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { get, post } from 'aws-amplify/api';
 import './App.css';
 
 // --- YOUR DEPLOYMENT DETAILS ---
